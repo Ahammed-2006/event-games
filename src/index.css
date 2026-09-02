@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-purple: #aa3bff;
+  --color-neon-blue: #00f0ff;
+  --color-neon-pink: #ff007f;
+  --color-dark-bg: #0b0c10;
+  --color-dark-surface: #1f2833;
+  --color-terminal-green: #4af626;
+  --font-mono: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: #0b0c10;
+    background-image: radial-gradient(ellipse at top, #1f2833 0%, #0b0c10 60%);
+    min-height: 100vh;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(31, 40, 51, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-panel {
+    background: rgba(11, 12, 16, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 12px currentColor;
+  }
+
+  .neon-border {
+    box-shadow: 0 0 10px var(--color-neon-blue), inset 0 0 10px var(--color-neon-blue);
+    border-color: var(--color-neon-blue);
+  }
+
+  .neon-border-purple {
+    box-shadow: 0 0 10px var(--color-neon-purple), inset 0 0 10px var(--color-neon-purple);
+    border-color: var(--color-neon-purple);
+  }
+
+  /* Touch-friendly tappable areas on mobile */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0b0c10; }
+::-webkit-scrollbar-thumb { background: #2a3444; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aa3bff; }
+
+/* Typing cursor animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Shimmer for scanner effects */
+@keyframes shimmer {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+.shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+/* Mobile input zoom prevention */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
