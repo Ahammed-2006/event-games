@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useScorePolling } from '../hooks/useScorePolling';
@@ -7,9 +7,10 @@ import {
   Users, Trophy, Clock, BarChart2, Settings,
   Play, Pause, RotateCcw, CheckCircle2, LogOut,
   AlertTriangle, X, Timer, Hash, Bell, Download,
-  BanIcon, UserCheck, RefreshCw, Wifi
+  BanIcon, UserCheck, RefreshCw, Wifi, Lock, Unlock, Key
 } from 'lucide-react';
 import { api } from '../services/api';
+
 
 function ConfirmModal({ title, message, confirmLabel = 'Confirm', danger = false, onConfirm, onCancel }: {
   title: string; message: string; confirmLabel?: string;
@@ -33,6 +34,52 @@ function ConfirmModal({ title, message, confirmLabel = 'Confirm', danger = false
             {confirmLabel}
           </button>
         </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function ResetPasswordModal({ studentName, onClose, onReset }: {
+  studentName: string; onClose: () => void; onReset: (newPwd: string) => void;
+}) {
+  const [pwd, setPwd] = useState('');
+  const [err, setErr] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwd.length < 4) {
+      setErr('Password must be at least 4 characters');
+      return;
+    }
+    onReset(pwd);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+        className="relative glass-card p-6 sm:p-8 w-full max-w-md border-white/20 z-10">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+        <div className="flex items-center gap-3 mb-4 text-neon-blue">
+          <Key className="w-6 h-6" />
+          <h3 className="text-xl font-bold font-mono">Reset Password</h3>
+        </div>
+        <p className="text-gray-400 mb-6 leading-relaxed">Set a new password for team <strong>{studentName}</strong>.</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input type="text" value={pwd} onChange={e => { setPwd(e.target.value); setErr(''); }}
+              placeholder="Enter new password" required autoFocus
+              className="w-full px-4 py-3 bg-dark-bg border border-white/10 rounded-lg text-gray-200 placeholder-gray-600 font-mono text-sm focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/30 transition-all" />
+          </div>
+          {err && <p className="text-red-400 text-xs font-mono">{err}</p>}
+          <div className="flex gap-3 justify-end pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 font-mono text-sm">Cancel</button>
+            <button type="submit" className="px-5 py-2 rounded-lg font-bold font-mono text-sm bg-neon-blue hover:bg-neon-blue/80 text-white">
+              Reset Password
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );
@@ -117,6 +164,22 @@ export default function AdminDashboard() {
   const [confirmModal, setConfirmModal] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState('');
+  const [gameLocks, setGameLocks] = useState({ 'word-search': false, 'jigsaw': false, 'debug-code': false });
+  const [resetPwdModal, setResetPwdModal] = useState<{ id: string; name: string } | null>(null);
+
+  // Fetch initial event state (including game locks)
+  useEffect(() => {
+    api.getEventState().then((s: any) => {
+      if (s.event_status === 'RUNNING') setEventStatus('live');
+      else if (s.event_status === 'PAUSED') setEventStatus('paused');
+      else if (s.event_status === 'ENDED') setEventStatus('ended');
+      setGameLocks({
+        'word-search': !!s.word_search_locked,
+        'jigsaw': !!s.jigsaw_locked,
+        'debug-code': !!s.debug_code_locked,
+      });
+    }).catch(console.error);
+  }, []);
 
   // ── Live polling ──────────────────────────────────────────────────────────
   const { scores, lastUpdated, isLoading, isLive, overrideData, refresh } = useScorePolling({
@@ -152,11 +215,30 @@ export default function AdminDashboard() {
     }).catch(console.error);
   };
 
+  const handleToggleGame = (gameId: 'word-search' | 'jigsaw' | 'debug-code') => {
+    const newLocked = !gameLocks[gameId];
+    api.toggleGameLock(gameId, newLocked).then(() => {
+      setGameLocks(prev => ({ ...prev, [gameId]: newLocked }));
+      const names: Record<string,string> = { 'word-search': 'Word Hunt', 'jigsaw': 'Jigsaw', 'debug-code': 'Debug Code' };
+      showToast(newLocked ? `🔒 ${names[gameId]} locked.` : `🔓 ${names[gameId]} unlocked.`);
+    }).catch(console.error);
+  };
+
   const handleBan = (id: string) => {
     const updated = scores.map((s: StudentScore) => s.id === id ? { ...s, status: 'banned' as StudentStatus } : s);
     overrideData(updated);
     setConfirmModal(null);
     showToast('🚫 Participant removed from the event.');
+  };
+
+  const handleResetPassword = (newPwd: string) => {
+    if (!resetPwdModal) return;
+    api.resetTeamPassword(resetPwdModal.id, newPwd).then(() => {
+      showToast(`🔑 Password reset for ${resetPwdModal.name}`);
+      setResetPwdModal(null);
+    }).catch((err) => {
+      showToast(`❌ Error: ${err.message}`);
+    });
   };
 
   const handleExport = () => {
@@ -316,6 +398,43 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Game Lock Controls */}
+      <div className="glass-card p-4 sm:p-6 space-y-4">
+        <h2 className="text-base font-bold text-white font-mono flex items-center gap-2">
+          <Lock className="w-4 h-4 text-red-400" /> Game Lock Controls
+        </h2>
+        <p className="text-xs text-gray-500 font-mono">Toggle individual challenges. Locked games show as locked to students.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {([
+            { id: 'word-search' as const, label: 'CSE Word Hunt', color: 'text-neon-purple', border: 'border-neon-purple/30' },
+            { id: 'jigsaw' as const, label: 'OSI Jigsaw', color: 'text-yellow-400', border: 'border-yellow-400/30' },
+            { id: 'debug-code' as const, label: 'Debug The Code', color: 'text-neon-blue', border: 'border-neon-blue/30' },
+          ]).map(game => {
+            const locked = gameLocks[game.id];
+            return (
+              <button
+                key={game.id}
+                onClick={() => handleToggleGame(game.id)}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border font-mono text-sm transition-all duration-200 ${
+                  locked
+                    ? 'bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20'
+                    : `bg-dark-bg/60 ${game.border} ${game.color} hover:bg-white/5`
+                }`}
+              >
+                <span className="font-semibold">{game.label}</span>
+                <span className="flex items-center gap-1.5">
+                  {locked ? (
+                    <><Lock className="w-4 h-4" /> LOCKED</>
+                  ) : (
+                    <><Unlock className="w-4 h-4" /> OPEN</>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Participant table */}
       <div className="glass-card overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
@@ -363,10 +482,16 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 text-center hidden sm:table-cell"><StatusChip status={student.status} /></td>
                     <td className="px-4 py-3 text-center">
                       {student.status !== 'banned' ? (
-                        <button onClick={() => setConfirmModal(`ban-${student.id}`)} title="Remove participant"
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                          <UserCheck className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => setResetPwdModal({ id: student.id, name: student.name })} title="Reset password"
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-neon-blue hover:bg-neon-blue/10 transition-colors">
+                            <Key className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => setConfirmModal(`ban-${student.id}`)} title="Remove participant"
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                            <UserCheck className="w-4 h-4" />
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-xs text-red-400">banned</span>
                       )}
@@ -391,6 +516,13 @@ export default function AdminDashboard() {
             confirmLabel="Remove" danger
             onConfirm={() => handleBan(confirmModal.replace('ban-', ''))}
             onCancel={() => setConfirmModal(null)}
+          />
+        )}
+        {resetPwdModal && (
+          <ResetPasswordModal
+            studentName={resetPwdModal.name}
+            onClose={() => setResetPwdModal(null)}
+            onReset={handleResetPassword}
           />
         )}
         {showSettings && (

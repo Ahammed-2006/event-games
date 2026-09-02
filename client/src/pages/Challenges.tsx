@@ -1,8 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Puzzle, Code, Clock, Star, ArrowRight } from 'lucide-react';
+import { Search, Puzzle, Code, Clock, Star, ArrowRight, Lock } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function Challenges() {
+  const [eventState, setEventState] = useState<any>(null);
+
+  useEffect(() => {
+    api.getEventState().then(setEventState).catch(console.error);
+  }, []);
+
+  const isLocked = (id: string) => {
+    if (!eventState) return false;
+    if (eventState.event_status !== 'RUNNING') return true;
+    if (id === 'word-search' && eventState.word_search_locked) return true;
+    if (id === 'jigsaw' && eventState.jigsaw_locked) return true;
+    if (id === 'debug-code' && eventState.debug_code_locked) return true;
+    return false;
+  };
   const challenges = [
     {
       id: 'word-search',
@@ -55,6 +71,7 @@ export default function Challenges() {
       <div className="grid md:grid-cols-2 gap-8">
         {challenges.map((challenge, index) => {
           const Icon = challenge.icon;
+          const locked = isLocked(challenge.id);
           return (
             <motion.div
               key={challenge.id}
@@ -62,16 +79,22 @@ export default function Challenges() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.2 }}
             >
-              <Link to={challenge.path} className={`group block h-full`}>
+              <Link to={challenge.path} className={`group block h-full ${locked ? 'pointer-events-none opacity-50' : ''}`}>
                 <div className={`glass-card p-8 h-full flex flex-col transition-all duration-300 ${challenge.borderColor} ${challenge.bgHover} hover:-translate-y-2 hover:shadow-2xl`}>
                   <div className="flex items-start justify-between mb-6">
                     <div className={`p-4 rounded-xl bg-dark-bg/50 border border-white/5 ${challenge.color}`}>
                       <Icon className="w-8 h-8" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-mono px-3 py-1 rounded-full bg-dark-bg/50 border border-white/10 text-gray-400">
-                      <Star className="w-3 h-3 text-yellow-500" />
-                      {challenge.difficulty}
-                    </div>
+                    {locked ? (
+                      <div className="flex items-center gap-1 text-xs font-mono px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400">
+                        <Lock className="w-3 h-3" /> LOCKED
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs font-mono px-3 py-1 rounded-full bg-dark-bg/50 border border-white/10 text-gray-400">
+                        <Star className="w-3 h-3 text-yellow-500" />
+                        {challenge.difficulty}
+                      </div>
+                    )}
                   </div>
 
                   <h2 className="text-2xl font-bold mb-3 font-mono text-white group-hover:text-glow transition-all">
@@ -94,8 +117,14 @@ export default function Challenges() {
                     </div>
 
                     <div className="pt-6 border-t border-white/10 flex items-center justify-between">
-                      <span className={`font-bold tracking-wider ${challenge.color}`}>PLAY NOW</span>
-                      <ArrowRight className={`w-5 h-5 ${challenge.color} transform group-hover:translate-x-2 transition-transform`} />
+                      <span className={`font-bold tracking-wider ${locked ? 'text-red-400' : challenge.color}`}>
+                        {locked ? 'LOCKED' : 'PLAY NOW'}
+                      </span>
+                      {locked ? (
+                        <Lock className="w-5 h-5 text-red-400" />
+                      ) : (
+                        <ArrowRight className={`w-5 h-5 ${challenge.color} transform group-hover:translate-x-2 transition-transform`} />
+                      )}
                     </div>
                   </div>
                 </div>

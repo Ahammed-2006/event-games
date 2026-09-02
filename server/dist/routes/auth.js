@@ -18,9 +18,13 @@ router.post('/student/register', async (req, res) => {
         if (!studentId || !name || !team || !password) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-        const existing = await (0, db_1.dbGet)('SELECT id FROM students WHERE id = ?', [studentId]);
-        if (existing) {
+        const existingId = await (0, db_1.dbGet)('SELECT id FROM students WHERE id = ?', [studentId]);
+        if (existingId) {
             return res.status(400).json({ error: 'Student/Team ID already registered' });
+        }
+        const existingName = await (0, db_1.dbGet)('SELECT id FROM students WHERE name = ? COLLATE NOCASE', [name]);
+        if (existingName) {
+            return res.status(400).json({ error: 'Team name already exists' });
         }
         const hash = await bcrypt_1.default.hash(password, 10);
         await (0, db_1.dbRun)('INSERT INTO students (id, name, team, password_hash) VALUES (?, ?, ?, ?)', [studentId, name, team, hash]);
@@ -36,9 +40,10 @@ router.post('/student/login', async (req, res) => {
     try {
         const { studentId, password } = req.body;
         if (!studentId || !password) {
-            return res.status(400).json({ error: 'Student ID and password are required' });
+            return res.status(400).json({ error: 'Team name and password are required' });
         }
-        const student = await (0, db_1.dbGet)('SELECT * FROM students WHERE id = ?', [studentId]);
+        // `studentId` from the client is actually the Team Name (`name` column) for teams
+        const student = await (0, db_1.dbGet)('SELECT * FROM students WHERE id = ? OR name = ? COLLATE NOCASE', [studentId, studentId]);
         if (!student) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -46,7 +51,7 @@ router.post('/student/login', async (req, res) => {
         if (!match) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        await (0, db_1.dbRun)('UPDATE students SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [studentId]);
+        await (0, db_1.dbRun)('UPDATE students SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [student.id]);
         const token = generateToken({ id: student.id, role: 'student', name: student.name, team: student.team });
         res.json({ token, student: { id: student.id, name: student.name, team: student.team, score: student.score } });
     }

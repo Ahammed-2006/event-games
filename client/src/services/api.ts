@@ -53,6 +53,12 @@ export const api = {
     return res.json();
   },
 
+  getEventState: async () => {
+    const res = await fetch(`${API_URL}/event/state`);
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+
   // Challenges
   submitChallenge: async (challengeType: string, data: any) => {
     const res = await fetch(`${API_URL}/challenges/${challengeType}/submit`, {
@@ -64,12 +70,6 @@ export const api = {
     return res.json();
   },
 
-  // Event
-  getEventState: async () => {
-    const res = await fetch(`${API_URL}/event/state`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-  },
 
   // Admin
   getAdminStudents: async () => {
@@ -91,6 +91,26 @@ export const api = {
     const res = await fetch(`${API_URL}/admin/event/reset`, {
       method: 'POST',
       headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+
+  toggleGameLock: async (gameId: string, locked: boolean) => {
+    const res = await fetch(`${API_URL}/admin/event/toggle-game`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ gameId, locked })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+
+  resetTeamPassword: async (studentId: string, newPassword: string) => {
+    const res = await fetch(`${API_URL}/admin/reset-password`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ studentId, newPassword })
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

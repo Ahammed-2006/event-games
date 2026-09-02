@@ -29,7 +29,7 @@ export default function LoginPage() {
 
   // Admin
   const [adminUser, setAdminUser] = useState('');
-  const [adminPwd,  setAdminPwd]  = useState('');
+  const [adminPwd, setAdminPwd] = useState('');
 
   const reset = () => { setError(''); setLoading(false); };
 
@@ -278,7 +278,7 @@ export default function LoginPage() {
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input type="text" value={adminUser} onChange={e => setAdminUser(e.target.value)}
-                      placeholder="admin" required
+                      required
                       className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-white/10 rounded-lg text-gray-200 placeholder-gray-600 font-mono text-sm focus:outline-none focus:border-red-500/40 transition-all" />
                   </div>
                 </div>

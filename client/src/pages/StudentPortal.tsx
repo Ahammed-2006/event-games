@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import TiltCard from '../components/TiltCard';
-import { Search, Image as ImageIcon, Grid3X3, Terminal, Clock, Star, ArrowRight, LogOut, User, Trophy, CheckCircle } from 'lucide-react';
+import { Search, Grid3X3, Terminal, Clock, Star, ArrowRight, LogOut, User, Trophy, CheckCircle, Lock } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function StudentPortal() {
@@ -11,9 +11,12 @@ export default function StudentPortal() {
   const [progress, setProgress] = useState<any[]>([]);
   const [score, setScore] = useState(0);
 
+  const [eventState, setEventState] = useState<any>(null);
+
   useEffect(() => {
     api.getProgress().then(setProgress).catch(console.error);
     api.getProfile().then(p => setScore(p.score)).catch(console.error);
+    api.getEventState().then(setEventState).catch(console.error);
   }, []);
 
   const challenges = [
@@ -30,26 +33,11 @@ export default function StudentPortal() {
       glowColor: 'rgba(170,59,255,0.35)',
       borderHover: 'hover:border-neon-purple/50',
       bgHover: 'hover:bg-neon-purple/5',
-      points: 1500,
-    },
-    {
-      id: 'image-puzzle',
-      title: 'CSE IMAGE PUZZLE',
-      description: 'Identify the hidden Computer Science concept from visual diagrams and code.',
-      icon: ImageIcon,
-      difficulty: 'Medium',
-      time: '3 min',
-      category: 'CSE',
-      path: '/challenges/image-puzzle',
-      color: 'text-neon-blue',
-      glowColor: 'rgba(0,240,255,0.3)',
-      borderHover: 'hover:border-neon-blue/50',
-      bgHover: 'hover:bg-neon-blue/5',
-      points: 500,
+      points: 20,
     },
     {
       id: 'jigsaw',
-      title: 'CSE JIGSAW',
+      title: 'OSI MODEL JIGSAW',
       description: 'Reconstruct a CSE architecture diagram piece by piece before time runs out.',
       icon: Grid3X3,
       difficulty: 'Hard',
@@ -60,26 +48,33 @@ export default function StudentPortal() {
       glowColor: 'rgba(250,204,21,0.3)',
       borderHover: 'hover:border-yellow-400/50',
       bgHover: 'hover:bg-yellow-400/5',
-      points: 300,
-      badge: 'NEW',
+      points: 400,
     },
     {
       id: 'debug-code',
       title: 'DEBUG THE CODE',
-      description: 'Find and fix real bugs in Python, JavaScript, C, and SQL code snippets.',
+      description: 'Fix 6 buggy code snippets. 5 points each, −2 if hint used.',
       icon: Terminal,
       difficulty: 'Hard',
       time: '6 min',
-      category: 'All Languages',
+      category: 'Coding',
       path: '/challenges/debug-code',
-      color: 'text-terminal-green',
-      glowColor: 'rgba(74,246,38,0.3)',
-      borderHover: 'hover:border-terminal-green/50',
-      bgHover: 'hover:bg-terminal-green/5',
-      points: 600,
-      badge: 'NEW',
-    },
+      color: 'text-neon-blue',
+      glowColor: 'rgba(0,240,255,0.3)',
+      borderHover: 'hover:border-neon-blue/50',
+      bgHover: 'hover:bg-neon-blue/5',
+      points: 30,
+    }
   ];
+
+  const isLocked = (id: string) => {
+    if (!eventState) return false;
+    if (eventState.event_status !== 'RUNNING') return true;
+    if (id === 'word-search' && eventState.word_search_locked) return true;
+    if (id === 'jigsaw' && eventState.jigsaw_locked) return true;
+    if (id === 'debug-code' && eventState.debug_code_locked) return true;
+    return false;
+  };
 
   return (
     <div className="space-y-8 py-4">
@@ -138,6 +133,7 @@ export default function StudentPortal() {
         {challenges.map((challenge, index) => {
           const Icon = challenge.icon;
           const isCompleted = progress.some(p => p.challenge_id === challenge.id && p.status === 'completed');
+          const locked = isLocked(challenge.id);
           
           return (
             <motion.div
@@ -147,7 +143,7 @@ export default function StudentPortal() {
               transition={{ delay: index * 0.12, type: 'spring', stiffness: 200, damping: 20 }}
             >
               <TiltCard intensity={10}>
-                <Link to={challenge.path} className={`group block h-full ${isCompleted ? 'pointer-events-none opacity-80' : ''}`}>
+                <Link to={challenge.path} className={`group block h-full ${(isCompleted || locked) ? 'pointer-events-none opacity-50' : ''}`}>
                   <div
                     className={`glass-card p-6 h-full flex flex-col border border-white/10 ${isCompleted ? 'border-terminal-green/50 bg-terminal-green/5' : challenge.borderHover} ${isCompleted ? '' : challenge.bgHover} transition-all duration-300 rounded-xl`}
                     style={{
@@ -170,17 +166,16 @@ export default function StudentPortal() {
                           <div className="flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-full bg-terminal-green/20 border border-terminal-green/40 text-terminal-green">
                             <CheckCircle className="w-3 h-3" /> COMPLETED
                           </div>
+                        ) : locked ? (
+                          <div className="flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400">
+                            <Lock className="w-3 h-3" /> LOCKED
+                          </div>
                         ) : (
                           <>
                             <div className="flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-full bg-dark-bg/60 border border-white/10 text-gray-400">
                               <Star className="w-3 h-3 text-yellow-500" />
                               {challenge.difficulty}
                             </div>
-                            {challenge.badge && (
-                              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400 border border-yellow-400/30">
-                                {challenge.badge}
-                              </span>
-                            )}
                           </>
                         )}
                       </div>

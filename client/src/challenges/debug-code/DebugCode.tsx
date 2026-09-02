@@ -30,9 +30,15 @@ const slideVariants = {
 };
 
 export default function DebugCode() {
+  const [selectedQuestions] = useState(() => {
+    // Shuffle and pick 6
+    const shuffled = [...DEBUG_QUESTIONS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 6);
+  });
+
   const [idx, setIdx]           = useState(0);
   const [direction, setDir]     = useState(1);
-  const [userCode, setUserCode] = useState(DEBUG_QUESTIONS[0].brokenCode);
+  const [userCode, setUserCode] = useState(selectedQuestions[0].brokenCode);
   const [submitted, setSubmitted]   = useState(false);
   const [isCorrect, setIsCorrect]   = useState(false);
   const [showHint, setShowHint]     = useState(false);
@@ -59,13 +65,13 @@ export default function DebugCode() {
 
   // Reset editor when question changes
   useEffect(() => {
-    setUserCode(DEBUG_QUESTIONS[idx].brokenCode);
+    setUserCode(selectedQuestions[idx].brokenCode);
     setSubmitted(false);
     setIsCorrect(false);
     setShowHint(false);
     setQuestionHinted(false);
     textareaRef.current?.focus();
-  }, [idx]);
+  }, [idx, selectedQuestions]);
 
   // Submit to backend when finished
   useEffect(() => {
@@ -79,7 +85,7 @@ export default function DebugCode() {
 
   const handleSubmit = () => {
     if (submitted) return;
-    const correct = normalize(userCode) === normalize(DEBUG_QUESTIONS[idx].correctCode);
+    const correct = normalize(userCode) === normalize(selectedQuestions[idx].correctCode);
     setIsCorrect(correct);
     setSubmitted(true);
     setResults(prev => [...prev, correct]);
@@ -91,7 +97,7 @@ export default function DebugCode() {
 
   const handleNext = () => {
     const next = idx + 1;
-    if (next >= DEBUG_QUESTIONS.length) {
+    if (next >= selectedQuestions.length) {
       setIsFinished(true);
       setIsPlaying(false);
     } else {
@@ -124,16 +130,16 @@ export default function DebugCode() {
         score={score}
         time={`${Math.floor((TIME_LIMIT - timeLeft) / 60)}:${((TIME_LIMIT - timeLeft) % 60).toString().padStart(2, '0')}`}
         stats={[
-          { label: 'Fixed Correctly', value: `${correct}/${DEBUG_QUESTIONS.length}` },
+          { label: 'Fixed Correctly', value: `${correct}/${selectedQuestions.length}` },
           { label: 'Hints Used', value: String(hintsUsed) },
-          { label: `Max Possible`, value: `${DEBUG_QUESTIONS.length * POINTS_PER_Q} pts` },
+          { label: `Max Possible`, value: `${selectedQuestions.length * POINTS_PER_Q} pts` },
         ]}
         onRestart={handleRestart}
       />
     );
   }
 
-  const q = DEBUG_QUESTIONS[idx];
+  const q = selectedQuestions[idx];
   const langClass = LANG_COLOR[q.language] ?? 'text-gray-400 bg-gray-400/10 border-gray-400/30';
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
   const isWarning = timeLeft <= 60;
@@ -148,7 +154,7 @@ export default function DebugCode() {
             <Terminal className="w-5 h-5 text-neon-purple" />
             <h1 className="text-lg sm:text-xl font-bold font-mono text-white">DEBUG THE CODE</h1>
             <div className="flex items-center gap-1.5 ml-2">
-              {DEBUG_QUESTIONS.map((_, i) => (
+              {selectedQuestions.map((_, i) => (
                 <div key={i} className={`w-2 h-2 rounded-full transition-all ${
                   i < results.length
                     ? results[i] ? 'bg-terminal-green' : 'bg-red-500'
@@ -178,7 +184,7 @@ export default function DebugCode() {
             Hint used: -{HINT_COST} pts penalty
           </span>
           <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
-            Max: {DEBUG_QUESTIONS.length * POINTS_PER_Q} pts
+            Max: {selectedQuestions.length * POINTS_PER_Q} pts
           </span>
         </div>
 
@@ -205,7 +211,7 @@ export default function DebugCode() {
                         {q.language.toUpperCase()}
                       </span>
                       <span className="text-xs text-gray-500 font-mono">
-                        Question {idx + 1} / {DEBUG_QUESTIONS.length}
+                        Question {idx + 1} / {selectedQuestions.length}
                       </span>
                     </div>
                     <h2 className="text-2xl font-bold text-white font-mono">{q.title}</h2>
@@ -258,7 +264,7 @@ export default function DebugCode() {
                         </div>
                         <button onClick={handleNext}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-neon-purple/20 border border-neon-purple/40 text-neon-purple font-mono text-sm hover:bg-neon-purple/30 transition-colors">
-                          {idx < DEBUG_QUESTIONS.length - 1 ? 'Next' : 'Finish'}
+                          {idx < selectedQuestions.length - 1 ? 'Next' : 'Finish'}
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </motion.div>

@@ -51,6 +51,9 @@ CREATE TABLE IF NOT EXISTS attempts (
 CREATE TABLE IF NOT EXISTS event_state (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_status TEXT DEFAULT 'WAITING',
+  word_search_locked BOOLEAN DEFAULT 0,
+  jigsaw_locked BOOLEAN DEFAULT 0,
+  debug_code_locked BOOLEAN DEFAULT 0,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
   `;
