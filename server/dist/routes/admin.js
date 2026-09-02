@@ -8,13 +8,15 @@ router.use(auth_1.authenticate, auth_1.requireAdmin);
 router.get('/students', async (req, res) => {
     try {
         const students = await (0, db_1.dbAll)('SELECT id, name, team, status, score, last_login FROM students');
-        // For each student, get challenge completion status
-        const result = await Promise.all(students.map(async (s) => {
-            const attempts = await (0, db_1.dbAll)('SELECT challenge_id, score, status FROM attempts WHERE student_id = ?', [s.id]);
-            const wordSearch = attempts.find(a => a.challenge_id === 'word-search')?.score || 0;
-            const imagePuzzle = attempts.find(a => a.challenge_id === 'image-puzzle')?.score || 0;
-            const jigsaw = attempts.find(a => a.challenge_id === 'jigsaw')?.score || 0;
-            const debugCode = attempts.find(a => a.challenge_id === 'debug-code')?.score || 0;
+        const attempts = await (0, db_1.dbAll)('SELECT student_id, challenge_id, score, time_taken FROM attempts');
+        const result = students.map((s) => {
+            const studentAttempts = attempts.filter((a) => a.student_id === s.id);
+            const wordSearch = studentAttempts.find((a) => a.challenge_id === 'word-search')?.score || 0;
+            const imagePuzzle = studentAttempts.find((a) => a.challenge_id === 'image-puzzle')?.score || 0;
+            const jigsawAttempt = studentAttempts.find((a) => a.challenge_id === 'jigsaw');
+            const jigsaw = jigsawAttempt?.score || 0;
+            const jigsawTime = jigsawAttempt?.time_taken || 0;
+            const debugCode = studentAttempts.find((a) => a.challenge_id === 'debug-code')?.score || 0;
             return {
                 id: s.id,
                 name: s.name,
@@ -24,10 +26,11 @@ router.get('/students', async (req, res) => {
                 wordSearch,
                 imagePuzzle,
                 jigsaw,
+                jigsawTime,
                 debugCode,
                 lastLogin: s.last_login
             };
-        }));
+        });
         res.json(result);
     }
     catch (error) {

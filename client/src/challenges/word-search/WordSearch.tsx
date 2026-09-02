@@ -5,6 +5,8 @@ import ResultScreen from '../ResultScreen';
 import ChallengeShell from '../../components/ChallengeShell';
 import { cn } from '../../utils/cn';
 
+const POINTS_PER_WORD = 2; // 10 words × 2 pts = 20 total
+
 export default function WordSearch() {
   const [gameState, setGameState] = useState<{
     grid: string[][];
@@ -112,14 +114,12 @@ export default function WordSearch() {
 
       if (matchedWord) {
         newFoundWords.push(matchedWord);
-        newScore += 100;
-      } else if (gameState.selectedCells.length > 1) {
-        newScore = Math.max(0, newScore - 10);
+        newScore += POINTS_PER_WORD;
       }
+      // No penalty for wrong guess
 
       const isFinished = newFoundWords.length === gameState.words.length;
       if (isFinished) {
-        newScore += gameState.timeLeft * 2;
         import('../../services/api').then(({ api }) => {
           api.submitChallenge('word-search', {
             foundWords: newFoundWords,
@@ -158,7 +158,7 @@ export default function WordSearch() {
         time={`${Math.floor((300 - gameState.timeLeft) / 60)}:${((300 - gameState.timeLeft) % 60).toString().padStart(2, '0')}`}
         stats={[
           { label: "Words Found", value: `${gameState.foundWords.length}/${gameState.words.length}` },
-          { label: "Time Bonus", value: `+${gameState.timeLeft * 2}` }
+          { label: "Max Score", value: `${gameState.words.length * POINTS_PER_WORD} pts` }
         ]}
         onRestart={initGame}
       />

@@ -9,15 +9,17 @@ router.use(authenticate, requireAdmin);
 router.get('/students', async (req, res) => {
   try {
     const students = await dbAll('SELECT id, name, team, status, score, last_login FROM students');
+    const attempts = await dbAll('SELECT student_id, challenge_id, score, time_taken FROM attempts');
     
-    // For each student, get challenge completion status
-    const result = await Promise.all(students.map(async (s: any) => {
-      const attempts = await dbAll('SELECT challenge_id, score, status FROM attempts WHERE student_id = ?', [s.id]);
+    const result = students.map((s: any) => {
+      const studentAttempts = attempts.filter((a: any) => a.student_id === s.id);
       
-      const wordSearch = attempts.find(a => a.challenge_id === 'word-search')?.score || 0;
-      const imagePuzzle = attempts.find(a => a.challenge_id === 'image-puzzle')?.score || 0;
-      const jigsaw = attempts.find(a => a.challenge_id === 'jigsaw')?.score || 0;
-      const debugCode = attempts.find(a => a.challenge_id === 'debug-code')?.score || 0;
+      const wordSearch = studentAttempts.find((a: any) => a.challenge_id === 'word-search')?.score || 0;
+      const imagePuzzle = studentAttempts.find((a: any) => a.challenge_id === 'image-puzzle')?.score || 0;
+      const jigsawAttempt = studentAttempts.find((a: any) => a.challenge_id === 'jigsaw');
+      const jigsaw = jigsawAttempt?.score || 0;
+      const jigsawTime = jigsawAttempt?.time_taken || 0;
+      const debugCode = studentAttempts.find((a: any) => a.challenge_id === 'debug-code')?.score || 0;
 
       return {
         id: s.id,
@@ -28,10 +30,11 @@ router.get('/students', async (req, res) => {
         wordSearch,
         imagePuzzle,
         jigsaw,
+        jigsawTime,
         debugCode,
         lastLogin: s.last_login
       };
-    }));
+    });
 
     res.json(result);
   } catch (error) {

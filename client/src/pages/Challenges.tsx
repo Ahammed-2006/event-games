@@ -1,35 +1,48 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Image as ImageIcon, Clock, Star, ArrowRight } from 'lucide-react';
+import { Search, Puzzle, Code, Clock, Star, ArrowRight } from 'lucide-react';
 
 export default function Challenges() {
   const challenges = [
     {
       id: 'word-search',
       title: 'CSE WORD HUNT',
-      description: 'Find hidden Computer Science and Debugging terms in the grid.',
+      description: 'Find hidden Computer Science terms in the grid. 2 points per word, 20 points total.',
       icon: Search,
       difficulty: 'Medium',
       time: '5 minutes',
-      category: 'CSE + Debugging',
+      points: '20 pts',
       path: '/challenges/word-search',
       color: 'text-neon-purple',
       borderColor: 'group-hover:border-neon-purple/50',
       bgHover: 'group-hover:bg-neon-purple/5'
     },
     {
-      id: 'image-puzzle',
-      title: 'CSE IMAGE PUZZLE',
-      description: 'Identify the hidden Computer Science concept from the image.',
-      icon: ImageIcon,
-      difficulty: 'Medium',
-      time: '3 minutes',
-      category: 'CSE',
-      path: '/challenges/image-puzzle',
+      id: 'jigsaw',
+      title: 'OSI MODEL JIGSAW',
+      description: 'Reassemble the OSI model layer diagram. Score based on pieces placed correctly.',
+      icon: Puzzle,
+      difficulty: 'Hard',
+      time: '4 minutes',
+      points: '400 pts',
+      path: '/challenges/jigsaw',
+      color: 'text-yellow-400',
+      borderColor: 'group-hover:border-yellow-400/50',
+      bgHover: 'group-hover:bg-yellow-400/5'
+    },
+    {
+      id: 'debug-code',
+      title: 'DEBUG THE CODE',
+      description: 'Fix 6 buggy code snippets. 5 points each, −2 if hint used. 30 points total.',
+      icon: Code,
+      difficulty: 'Hard',
+      time: '6 minutes',
+      points: '30 pts',
+      path: '/challenges/debug-code',
       color: 'text-neon-blue',
       borderColor: 'group-hover:border-neon-blue/50',
       bgHover: 'group-hover:bg-neon-blue/5'
-    }
+    },
   ];
 
   return (
@@ -75,8 +88,8 @@ export default function Challenges() {
                         {challenge.time}
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                        {challenge.category}
+                        <Star className="w-3 h-3 text-yellow-400" />
+                        {challenge.points}
                       </div>
                     </div>
 

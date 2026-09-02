@@ -10,6 +10,7 @@ export interface StudentScore {
   wordSearch: number;
   imagePuzzle: number;
   jigsaw: number;
+  jigsawTime: number;
   debugCode: number;
   status: StudentStatus;
   time: string;
@@ -27,6 +28,7 @@ export async function fetchScores(): Promise<StudentScore[]> {
       wordSearch: s.wordSearch,
       imagePuzzle: s.imagePuzzle,
       jigsaw: s.jigsaw,
+      jigsawTime: s.jigsawTime || 0,
       debugCode: s.debugCode,
       status: s.status,
       time: s.lastLogin || '—',

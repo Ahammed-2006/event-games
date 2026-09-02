@@ -161,9 +161,9 @@ export default function AdminDashboard() {
 
   const handleExport = () => {
     const rows = [
-      ['#', 'Team', 'Members', 'Word Hunt', 'Image Puzzle', 'Jigsaw', 'Total', 'Status'],
+      ['#', 'Team', 'Members', 'Word Hunt', 'Jigsaw Pts', 'Jigsaw Time (s)', 'Debug Code', 'Total', 'Status'],
       ...[...scores].sort((a, b) => b.score - a.score)
-        .map((s, i) => [i + 1, s.name, s.team, s.wordSearch, s.imagePuzzle, s.jigsaw, s.score, s.status])
+        .map((s, i) => [i + 1, s.name, s.team, s.wordSearch, s.jigsaw, s.jigsawTime, s.debugCode, s.score, s.status])
     ];
     const csv = rows.map(r => r.join(',')).join('\n');
     const a = document.createElement('a');
@@ -334,8 +334,8 @@ export default function AdminDashboard() {
                 <th className="text-left px-4 py-3">Team</th>
                 <th className="text-left px-4 py-3 hidden sm:table-cell">Members</th>
                 <th className="text-right px-4 py-3 hidden md:table-cell">Word Hunt</th>
-                <th className="text-right px-4 py-3 hidden md:table-cell">Img Puzzle</th>
                 <th className="text-right px-4 py-3 hidden md:table-cell">Jigsaw</th>
+                <th className="text-right px-4 py-3 hidden md:table-cell">Debug Code</th>
                 <th className="text-right px-4 py-3">Total</th>
                 <th className="text-center px-4 py-3 hidden sm:table-cell">Status</th>
                 <th className="text-center px-4 py-3">Action</th>
@@ -350,8 +350,10 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 text-white font-medium">{student.name}</td>
                     <td className="px-4 py-3 text-gray-400 hidden sm:table-cell">{student.team}</td>
                     <td className="px-4 py-3 text-right text-neon-blue hidden md:table-cell">{student.wordSearch}</td>
-                    <td className="px-4 py-3 text-right text-neon-purple hidden md:table-cell">{student.imagePuzzle}</td>
-                    <td className="px-4 py-3 text-right text-yellow-400 hidden md:table-cell">{student.jigsaw}</td>
+                    <td className="px-4 py-3 text-right text-yellow-400 hidden md:table-cell">
+                      {student.jigsaw} {student.jigsawTime ? <span className="text-gray-500 text-xs ml-1">({student.jigsawTime}s)</span> : ''}
+                    </td>
+                    <td className="px-4 py-3 text-right text-neon-purple hidden md:table-cell">{student.debugCode}</td>
                     <td className="px-4 py-3 text-right font-bold text-white">
                       <motion.span key={student.score} initial={{ color: '#00f0ff' }} animate={{ color: '#ffffff' }}
                         transition={{ duration: 0.8 }}>

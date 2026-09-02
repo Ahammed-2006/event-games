@@ -91,7 +91,10 @@ export default function JigsawPuzzle() {
         const solvedCount = pieces.filter(p => p.solved).length;
         const score = Math.round((solvedCount / TOTAL_PIECES) * 300) + Math.round((timeLeft / TIME_LIMIT) * 100);
         import('../../services/api').then(({ api }) => {
-          api.submitChallenge('jigsaw', { score }).catch(console.error);
+          api.submitChallenge('jigsaw', { 
+            score, 
+            timeTaken: TIME_LIMIT - timeLeft 
+          }).catch(console.error);
         });
       }, 400);
     }

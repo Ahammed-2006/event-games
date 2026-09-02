@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 
 const TIME_LIMIT = 360; // 6 minutes total
+const POINTS_PER_Q = 5; // 6 questions × 5 = 30 total
+const HINT_COST = 2;    // deduct 2pts if hint used on correct answer
+
 const LANG_COLOR: Record<string, string> = {
   python:     'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
   javascript: 'text-yellow-300 bg-yellow-300/10 border-yellow-300/30',
@@ -16,12 +19,10 @@ const LANG_COLOR: Record<string, string> = {
   sql:        'text-neon-purple bg-neon-purple/10 border-neon-purple/30',
 };
 
-/** Normalize code for comparison: trim lines, collapse whitespace */
 function normalize(code: string) {
   return code.split('\n').map(l => l.trim()).filter(Boolean).join('\n');
 }
 
-/** Slide direction variants */
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
   center:               ({ x: 0, opacity: 1 }),
@@ -35,6 +36,7 @@ export default function DebugCode() {
   const [submitted, setSubmitted]   = useState(false);
   const [isCorrect, setIsCorrect]   = useState(false);
   const [showHint, setShowHint]     = useState(false);
+  const [questionHinted, setQuestionHinted] = useState(false);
   const [hintsUsed, setHintsUsed]   = useState(0);
   const [score, setScore]           = useState(0);
   const [timeLeft, setTimeLeft]     = useState(TIME_LIMIT);
@@ -61,20 +63,29 @@ export default function DebugCode() {
     setSubmitted(false);
     setIsCorrect(false);
     setShowHint(false);
+    setQuestionHinted(false);
     textareaRef.current?.focus();
   }, [idx]);
 
+  // Submit to backend when finished
+  useEffect(() => {
+    if (isFinished) {
+      import('../../services/api').then(({ api }) => {
+        api.submitChallenge('debug-code', { score }).catch(console.error);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished]);
+
   const handleSubmit = () => {
     if (submitted) return;
-    const q = DEBUG_QUESTIONS[idx];
-    const correct = normalize(userCode) === normalize(q.correctCode);
+    const correct = normalize(userCode) === normalize(DEBUG_QUESTIONS[idx].correctCode);
     setIsCorrect(correct);
     setSubmitted(true);
     setResults(prev => [...prev, correct]);
-
     if (correct) {
-      const hintPenalty = showHint ? 25 : 0;
-      setScore(s => s + q.points - hintPenalty);
+      const pts = questionHinted ? Math.max(0, POINTS_PER_Q - HINT_COST) : POINTS_PER_Q;
+      setScore(s => s + pts);
     }
   };
 
@@ -83,10 +94,6 @@ export default function DebugCode() {
     if (next >= DEBUG_QUESTIONS.length) {
       setIsFinished(true);
       setIsPlaying(false);
-      // Submit to backend
-      import('../../services/api').then(({ api }) => {
-        api.submitChallenge('debug-code', { score }).catch(console.error);
-      });
     } else {
       setDir(1);
       setIdx(next);
@@ -94,15 +101,20 @@ export default function DebugCode() {
   };
 
   const handleHint = () => {
+    // Only penalise if not already revealed for this question
+    if (!questionHinted) {
+      setHintsUsed(h => h + 1);
+      setQuestionHinted(true);
+    }
     setShowHint(true);
-    setHintsUsed(h => h + 1);
   };
 
   const handleRestart = () => {
     setIdx(0); setDir(1); setScore(0);
     setTimeLeft(TIME_LIMIT); setIsPlaying(true);
     setIsFinished(false); setResults([]);
-    setSubmitted(false); setIsCorrect(false); setShowHint(false);
+    setSubmitted(false); setIsCorrect(false);
+    setShowHint(false); setQuestionHinted(false);
   };
 
   if (isFinished) {
@@ -114,6 +126,7 @@ export default function DebugCode() {
         stats={[
           { label: 'Fixed Correctly', value: `${correct}/${DEBUG_QUESTIONS.length}` },
           { label: 'Hints Used', value: String(hintsUsed) },
+          { label: `Max Possible`, value: `${DEBUG_QUESTIONS.length * POINTS_PER_Q} pts` },
         ]}
         onRestart={handleRestart}
       />
@@ -134,7 +147,6 @@ export default function DebugCode() {
           <div className="flex items-center gap-3">
             <Terminal className="w-5 h-5 text-neon-purple" />
             <h1 className="text-lg sm:text-xl font-bold font-mono text-white">DEBUG THE CODE</h1>
-            {/* Question dots */}
             <div className="flex items-center gap-1.5 ml-2">
               {DEBUG_QUESTIONS.map((_, i) => (
                 <div key={i} className={`w-2 h-2 rounded-full transition-all ${
@@ -155,6 +167,19 @@ export default function DebugCode() {
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
+        </div>
+
+        {/* Scoring info */}
+        <div className="flex gap-3 text-xs font-mono">
+          <span className="px-3 py-1 rounded-full bg-neon-purple/10 border border-neon-purple/20 text-neon-purple">
+            {POINTS_PER_Q} pts per correct answer
+          </span>
+          <span className="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
+            Hint used: -{HINT_COST} pts penalty
+          </span>
+          <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
+            Max: {DEBUG_QUESTIONS.length * POINTS_PER_Q} pts
+          </span>
         </div>
 
         {/* Sliding question panel */}
@@ -185,7 +210,9 @@ export default function DebugCode() {
                     </div>
                     <h2 className="text-2xl font-bold text-white font-mono">{q.title}</h2>
                     <p className="text-gray-400 leading-relaxed">{q.description}</p>
-                    <div className="text-xs font-mono text-neon-purple">+{q.points} pts on correct fix</div>
+                    <div className="text-xs font-mono text-neon-purple">
+                      +{POINTS_PER_Q} pts (−{HINT_COST} if hint used)
+                    </div>
                   </div>
 
                   {/* Hint */}
@@ -200,7 +227,7 @@ export default function DebugCode() {
                       <button onClick={handleHint} disabled={submitted}
                         className="flex items-center gap-2 text-sm text-yellow-400/70 hover:text-yellow-400 font-mono transition-colors disabled:opacity-30">
                         <Lightbulb className="w-4 h-4" />
-                        Show Hint <span className="text-xs text-yellow-600 ml-1">(-25 pts)</span>
+                        Show Hint <span className="text-xs text-yellow-600 ml-1">(−{HINT_COST} pts if correct)</span>
                       </button>
                     )}
                   </div>
@@ -220,7 +247,9 @@ export default function DebugCode() {
                             : <XCircle     className="w-6 h-6 text-red-400" />}
                           <div>
                             <p className={`font-bold font-mono ${isCorrect ? 'text-terminal-green' : 'text-red-400'}`}>
-                              {isCorrect ? `✓ CORRECT! +${q.points - (showHint ? 25 : 0)} pts` : '✗ Not quite right'}
+                              {isCorrect
+                                ? `✓ CORRECT! +${questionHinted ? POINTS_PER_Q - HINT_COST : POINTS_PER_Q} pts`
+                                : '✗ Not quite right'}
                             </p>
                             {!isCorrect && (
                               <p className="text-gray-500 text-xs mt-0.5">Compare your code with the expected fix.</p>
@@ -253,7 +282,6 @@ export default function DebugCode() {
 
                   {/* Editor body with line numbers */}
                   <div className="relative flex-1 bg-[#1e1e1e] border border-white/10 rounded-b-lg overflow-hidden min-h-[280px] md:min-h-[300px]">
-                    {/* Line numbers */}
                     <div className="absolute top-0 left-0 bottom-0 w-10 bg-[#1e1e1e] border-r border-white/5 flex flex-col items-end pr-2 pt-3 z-10 select-none pointer-events-none">
                       {userCode.split('\n').map((_, i) => (
                         <span key={i} className="text-gray-600 font-mono text-xs leading-[1.6rem]">{i + 1}</span>

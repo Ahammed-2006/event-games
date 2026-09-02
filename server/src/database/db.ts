@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS attempts (
   started_at DATETIME,
   completed_at DATETIME,
   status TEXT DEFAULT 'in-progress',
+  time_taken INTEGER DEFAULT 0,
   FOREIGN KEY(student_id) REFERENCES students(id),
   FOREIGN KEY(challenge_id) REFERENCES challenges(id)
 );

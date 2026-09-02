@@ -18,10 +18,10 @@ router.post('/word-search/submit', async (req, res) => {
         const { foundWords, timeLeft } = authReq.body;
         // Server-side validation: the client just sends the words found
         const targetWords = [
-            "DEBUG", "BUG", "ERROR", "POINTER", "ARRAY", "OBJECT", "CLASS",
-            "PYTHON", "JAVA", "SCRIPT", "API", "SERVER", "CLIENT", "DATABASE",
-            "NETWORK", "ALGORITHM", "COMPILER", "RUNTIME", "MEMORY", "THREAD",
-            "PROCESS", "BINARY", "STACK", "QUEUE", "RECURSION"
+            "ALGORITHM", "GRAPH", "TREE", "POINTER", "ARRAY", "OBJECT", "CLASS",
+            "VARIABLE", "FUNCTION", "LOOP", "LOGIC", "HEURISTIC", "TURING", "AUTOMATA",
+            "COMPILER", "BOOLEAN", "MATRIX", "VECTOR", "STACK", "QUEUE", "RECURSION",
+            "HASHING", "SORTING", "SEARCHING", "PARSING"
         ];
         let score = 0;
         let actualFound = 0;
@@ -62,9 +62,9 @@ router.post('/image-puzzle/submit', async (req, res) => {
 router.post('/jigsaw/submit', async (req, res) => {
     const authReq = req;
     try {
-        const { score } = authReq.body;
+        const { score, timeTaken } = authReq.body;
         const attemptId = Date.now().toString() + Math.floor(Math.random() * 1000);
-        await (0, db_1.dbRun)('INSERT OR REPLACE INTO attempts (id, student_id, challenge_id, score, status, completed_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)', [attemptId, authReq.user?.id, 'jigsaw', score, 'completed']);
+        await (0, db_1.dbRun)('INSERT OR REPLACE INTO attempts (id, student_id, challenge_id, score, status, completed_at, time_taken) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)', [attemptId, authReq.user?.id, 'jigsaw', score, 'completed', timeTaken || 0]);
         await updateStudentScore(authReq.user?.id);
         res.json({ success: true, score });
     }

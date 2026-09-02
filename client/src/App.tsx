@@ -7,7 +7,6 @@ import Challenges from './pages/Challenges';
 import Rules from './pages/Rules';
 import Leaderboard from './pages/Leaderboard';
 import WordSearch from './challenges/word-search/WordSearch';
-import ImagePuzzle from './challenges/image-puzzle/ImagePuzzle';
 import JigsawPuzzle from './challenges/jigsaw/JigsawPuzzle';
 import DebugCode from './challenges/debug-code/DebugCode';
 import AdminDashboard from './pages/AdminDashboard';
@@ -46,7 +45,6 @@ function AppRoutes() {
           <Route index element={<StudentPortal />} />
           <Route path="challenges" element={<Challenges />} />
           <Route path="challenges/word-search" element={<WordSearch />} />
-          <Route path="challenges/image-puzzle" element={<ImagePuzzle />} />
           <Route path="challenges/jigsaw" element={<JigsawPuzzle />} />
           <Route path="challenges/debug-code" element={<DebugCode />} />
           <Route path="rules" element={<Rules />} />
