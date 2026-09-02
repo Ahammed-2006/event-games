@@ -37,7 +37,6 @@ export default function LoginPage() {
     e.preventDefault(); reset();
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
       const res = await login(loginTeam, loginPwd);
       if (!res.success) setError(res.message);
     } finally { setLoading(false); }
@@ -50,7 +49,6 @@ export default function LoginPage() {
     if (filledMembers.length < 1) { setError('Enter at least one member name.'); return; }
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
       const res = await registerTeam(teamName, members, regPwd);
       if (!res.success) setError(res.message);
     } finally { setLoading(false); }
@@ -60,7 +58,6 @@ export default function LoginPage() {
     e.preventDefault(); reset();
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
       const res = await login(adminUser, adminPwd);
       if (!res.success) setError(res.message);
     } finally { setLoading(false); }

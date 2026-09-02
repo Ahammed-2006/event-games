@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'debug-arena-server',
-      script: './server/dist/server.js',
+      script: './dist/server.js',
       cwd: './server',
       env: {
         NODE_ENV: 'production',

@@ -54,4 +54,14 @@ router.post('/event/end', async (req, res) => {
   res.json({ message: 'Event ended' });
 });
 
+router.post('/event/reset', async (req, res) => {
+  try {
+    await dbRun('DELETE FROM attempts');
+    await dbRun("UPDATE students SET score = 0, status = 'not-started'");
+    res.json({ message: 'Event reset successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to reset event' });
+  }
+});
+
 export default router;
