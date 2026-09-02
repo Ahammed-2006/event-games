@@ -66,7 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       persist(u, res.token);
       return { success: true, message: 'Team registered!' };
     } catch (err: any) {
-      return { success: false, message: JSON.parse(err.message)?.error || err.message };
+      let msg = err?.message || 'Registration failed';
+      try { const p = JSON.parse(msg); if (p?.error) msg = p.error; } catch {}
+      if (msg === 'Failed to fetch') msg = 'Cannot reach server. Check network / API URL.';
+      return { success: false, message: msg };
     }
   };
 
@@ -84,7 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, message: `Welcome, ${res.student.name}!` };
       }
     } catch (err: any) {
-      return { success: false, message: JSON.parse(err.message)?.error || err.message };
+      let msg = err?.message || 'Login failed';
+      try { const p = JSON.parse(msg); if (p?.error) msg = p.error; } catch {}
+      if (msg === 'Failed to fetch') msg = 'Cannot reach server. Check network / API URL.';
+      return { success: false, message: msg };
     }
   };
 

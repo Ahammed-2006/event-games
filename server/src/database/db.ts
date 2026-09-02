@@ -8,6 +8,7 @@ export const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database', err.message);
   } else {
+    db.exec('PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA synchronous=NORMAL;', () => {});
     console.log('Connected to the SQLite database.');
     initDb();
   }
