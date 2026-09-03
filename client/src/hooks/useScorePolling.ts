@@ -3,7 +3,6 @@ import { fetchScores, type StudentScore } from '../services/scoreService';
 import { io } from 'socket.io-client';
 
 interface UseScorePollingOptions {
-  intervalMs?: number;  // polling interval (default 4 s)
   enabled?: boolean;    // pause polling when false
 }
 
@@ -17,7 +16,6 @@ interface UseScorePollingReturn {
 }
 
 export function useScorePolling({
-  intervalMs = 4000,
   enabled = true,
 }: UseScorePollingOptions = {}): UseScorePollingReturn {
   const [scores, setScores] = useState<StudentScore[]>([]);
