@@ -26,7 +26,7 @@ router.get('/students', async (req, res) => {
         name: s.name,
         team: s.team,
         status: s.status,
-        score: s.score,
+        score: wordSearch + jigsaw + debugCode,
         wordSearch,
         jigsaw,
         jigsawTime,

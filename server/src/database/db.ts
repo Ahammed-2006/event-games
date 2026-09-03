@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS attempts (
 
 CREATE TABLE IF NOT EXISTS event_state (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  event_status TEXT DEFAULT 'WAITING',
+  event_status TEXT DEFAULT 'RUNNING',
   word_search_locked BOOLEAN DEFAULT 0,
   jigsaw_locked BOOLEAN DEFAULT 0,
   debug_code_locked BOOLEAN DEFAULT 0,
@@ -70,7 +70,10 @@ CREATE TABLE IF NOT EXISTS event_state (
 function seedEventState() {
   db.get('SELECT COUNT(*) as count FROM event_state', (err, row: any) => {
     if (row && row.count === 0) {
-      db.run('INSERT INTO event_state (event_status) VALUES (?)', ['WAITING']);
+      db.run('INSERT INTO event_state (event_status) VALUES (?)', ['RUNNING']);
+    } else {
+      // Ensure existing waiting state is converted to running on fresh start
+      db.run('UPDATE event_state SET event_status = ? WHERE event_status = ?', ['RUNNING', 'WAITING']);
     }
   });
 }
