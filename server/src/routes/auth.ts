@@ -21,7 +21,7 @@ router.post('/student/register', async (req, res) => {
     if (existingId) {
       return res.status(400).json({ error: 'Student/Team ID already registered' });
     }
-    const existingName = await dbGet('SELECT id FROM students WHERE name = ? COLLATE NOCASE', [name]);
+    const existingName = await dbGet('SELECT id FROM students WHERE LOWER(name) = LOWER(?)', [name]);
     if (existingName) {
       return res.status(400).json({ error: 'Team name already exists' });
     }
@@ -49,7 +49,7 @@ router.post('/student/login', async (req, res) => {
     const trimmedId = studentId.trim();
 
     // `studentId` from the client is actually the Team Name (`name` column) for teams
-    const student = await dbGet('SELECT * FROM students WHERE TRIM(id) = ? COLLATE NOCASE OR TRIM(name) = ? COLLATE NOCASE', [trimmedId, trimmedId]);
+    const student = await dbGet('SELECT * FROM students WHERE LOWER(TRIM(id)) = LOWER(?) OR LOWER(TRIM(name)) = LOWER(?)', [trimmedId, trimmedId]);
     if (!student) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
