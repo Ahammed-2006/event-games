@@ -43,7 +43,7 @@ router.post('/student/login', async (req, res) => {
             return res.status(400).json({ error: 'Team name and password are required' });
         }
         // `studentId` from the client is actually the Team Name (`name` column) for teams
-        const student = await (0, db_1.dbGet)('SELECT * FROM students WHERE id = ? OR name = ? COLLATE NOCASE', [studentId, studentId]);
+        const student = await (0, db_1.dbGet)('SELECT * FROM students WHERE TRIM(id) = ? COLLATE NOCASE OR TRIM(name) = ? COLLATE NOCASE', [studentId, studentId]);
         if (!student) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }

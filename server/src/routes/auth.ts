@@ -48,7 +48,7 @@ router.post('/student/login', async (req, res) => {
     }
 
     // `studentId` from the client is actually the Team Name (`name` column) for teams
-    const student = await dbGet('SELECT * FROM students WHERE id = ? OR name = ? COLLATE NOCASE', [studentId, studentId]);
+    const student = await dbGet('SELECT * FROM students WHERE TRIM(id) = ? COLLATE NOCASE OR TRIM(name) = ? COLLATE NOCASE', [studentId, studentId]);
     if (!student) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
