@@ -4,10 +4,10 @@ import { Clock, RotateCcw, Shuffle, CheckCircle } from 'lucide-react';
 import ResultScreen from '../ResultScreen';
 import ChallengeShell from '../../components/ChallengeShell';
 
-const GRID_COLS = 4;
-const GRID_ROWS = 4;
+const GRID_COLS = 5;
+const GRID_ROWS = 5;
 const TOTAL_PIECES = GRID_COLS * GRID_ROWS;
-const JIGSAW_IMAGE = '/jigsaw-osi.png';
+const JIGSAW_IMAGES = ['/images/puzzle1.jpg', '/images/puzzle2.jpg'];
 const TIME_LIMIT = 240; // 4 minutes
 
 interface Piece {
@@ -33,6 +33,7 @@ export default function JigsawPuzzle() {
   const [isFinished, setIsFinished] = useState(false);
   const [moves, setMoves] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImage] = useState(() => JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const initPieces = useCallback(() => {
@@ -186,7 +187,7 @@ export default function JigsawPuzzle() {
           >
             {/* Hidden image to verify load */}
             <img
-              src={JIGSAW_IMAGE}
+              src={currentImage}
               alt="preload"
               className="hidden"
               onLoad={() => setImageLoaded(true)}
@@ -214,7 +215,7 @@ export default function JigsawPuzzle() {
                       style={{
                         width: `${GRID_COLS * 100}%`,
                         height: `${GRID_ROWS * 100}%`,
-                        backgroundImage: `url(${JIGSAW_IMAGE})`,
+                        backgroundImage: `url(${currentImage})`,
                         backgroundSize: '100% 100%',
                         transform: `translate(-${col * (100 / GRID_COLS)}%, -${row * (100 / GRID_ROWS)}%)`,
                       }}
@@ -249,7 +250,7 @@ export default function JigsawPuzzle() {
           <div className="glass-card p-3 sm:p-4">
             <p className="text-xs font-mono text-gray-500 mb-2 uppercase tracking-widest">Reference Image</p>
             <img
-              src={JIGSAW_IMAGE}
+              src={currentImage}
               alt="Reference"
               className="w-full rounded-md opacity-80 hover:opacity-100 transition-opacity border border-white/10"
             />
@@ -257,7 +258,7 @@ export default function JigsawPuzzle() {
           <div className="glass-card p-3 sm:p-4">
             <p className="text-xs font-mono text-gray-500 mb-3 uppercase tracking-widest">Scoring</p>
             <div className="space-y-2 text-xs font-mono text-gray-400">
-              <div className="flex justify-between"><span>Correct piece</span><span className="text-neon-purple">+18.75 pts</span></div>
+              <div className="flex justify-between"><span>Correct piece</span><span className="text-neon-purple">+12 pts</span></div>
               <div className="flex justify-between"><span>Time bonus</span><span className="text-neon-blue">up to 100</span></div>
               <div className="flex justify-between"><span>Full solve</span><span className="text-yellow-400">300 pts max</span></div>
             </div>
