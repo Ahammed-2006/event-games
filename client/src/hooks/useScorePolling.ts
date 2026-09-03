@@ -47,9 +47,12 @@ export function useScorePolling({
 
   // Initial fetch + interval
   useEffect(() => {
-    if (!enabled) return;
-    poll(); // immediate first fetch
-    timerRef.current = setInterval(poll, intervalMs);
+    poll(); // immediate first fetch (always run once)
+    
+    if (enabled) {
+      timerRef.current = setInterval(poll, intervalMs);
+    }
+    
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (liveRef.current)  clearTimeout(liveRef.current);
