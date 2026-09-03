@@ -1,5 +1,3 @@
-import { api } from './api';
-
 export type StudentStatus = 'completed' | 'in-progress' | 'not-started' | 'banned';
 
 export interface StudentScore {
