@@ -4,6 +4,10 @@ import { dbGet } from '../database/db';
 const router = Router();
 
 router.get('/state', async (req, res) => {
+  // Prevent all caching so clients always get fresh lock state
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     const state = await dbGet('SELECT * FROM event_state ORDER BY id DESC LIMIT 1');
     res.json({ 

@@ -8,7 +8,11 @@ export default function Challenges() {
   const [eventState, setEventState] = useState<any>(null);
 
   useEffect(() => {
-    api.getEventState().then(setEventState).catch(console.error);
+    // Poll event state every 5s so admin lock/unlock reflects in real-time
+    const syncState = () => api.getEventState().then(setEventState).catch(console.error);
+    syncState();
+    const interval = setInterval(syncState, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const isLocked = (id: string) => {

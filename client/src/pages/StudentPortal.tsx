@@ -16,7 +16,12 @@ export default function StudentPortal() {
   useEffect(() => {
     api.getProgress().then(setProgress).catch(console.error);
     api.getProfile().then(p => setScore(p.score)).catch(console.error);
-    api.getEventState().then(setEventState).catch(console.error);
+
+    // Poll event state every 5s so admin lock/unlock reflects in real-time
+    const syncState = () => api.getEventState().then(setEventState).catch(console.error);
+    syncState();
+    const interval = setInterval(syncState, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const challenges = [

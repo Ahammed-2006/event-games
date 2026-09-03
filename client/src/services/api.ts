@@ -54,7 +54,11 @@ export const api = {
   },
 
   getEventState: async () => {
-    const res = await fetch(`${API_URL}/event/state`);
+    // cache-busting: ensures browser never uses a stale cached response
+    const res = await fetch(`${API_URL}/event/state?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },

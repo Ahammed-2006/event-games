@@ -4,6 +4,10 @@ const express_1 = require("express");
 const db_1 = require("../database/db");
 const router = (0, express_1.Router)();
 router.get('/state', async (req, res) => {
+    // Prevent all caching so clients always get fresh lock state
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     try {
         const state = await (0, db_1.dbGet)('SELECT * FROM event_state ORDER BY id DESC LIMIT 1');
         res.json({
