@@ -24,7 +24,6 @@ export function useScorePolling({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const liveRef  = useRef<ReturnType<typeof setTimeout>  | null>(null);
 
   const pulse = () => {

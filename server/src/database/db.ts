@@ -9,8 +9,8 @@ let pgPool: Pool;
 
 if (usePg) {
   pgPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+    connectionString: process.env.DATABASE_URL as string,
+    ssl: (process.env.DATABASE_URL as string).includes('localhost') ? false : { rejectUnauthorized: false }
   });
   console.log('Connected to PostgreSQL database.');
   initDb();
