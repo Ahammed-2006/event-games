@@ -28,9 +28,9 @@ function AppRoutes() {
   if (isAdmin) {
     return (
       <Routes>
+        <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<AdminDashboard />} />
-          <Route path="leaderboard" element={<Leaderboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
@@ -41,6 +41,7 @@ function AppRoutes() {
   if (isTeam) {
     return (
       <Routes>
+        <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<StudentPortal />} />
           <Route path="challenges" element={<Challenges />} />
@@ -48,7 +49,6 @@ function AppRoutes() {
           <Route path="challenges/jigsaw" element={<JigsawPuzzle />} />
           <Route path="challenges/debug-code" element={<DebugCode />} />
           <Route path="rules" element={<Rules />} />
-          <Route path="leaderboard" element={<Leaderboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
