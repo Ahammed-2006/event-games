@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useScorePolling } from '../hooks/useScorePolling';
 
 export default function Leaderboard() {
-  const { scores } = useScorePolling({ intervalMs: 3000, enabled: true });
+  const { scores } = useScorePolling({ enabled: true });
 
   const rankedScores = [...scores]
     .filter(s => s.status !== 'banned')

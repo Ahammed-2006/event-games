@@ -183,7 +183,6 @@ export default function AdminDashboard() {
 
   // ── Live polling ──────────────────────────────────────────────────────────
   const { scores, lastUpdated, isLoading, isLive, overrideData, refresh } = useScorePolling({
-    intervalMs: 4000,
     enabled: eventStatus === 'live',
   });
 
