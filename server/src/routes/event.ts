@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { dbGet } from '../database/db';
+import { dbGet, dbAll } from '../database/db';
 
 const router = Router();
 
@@ -16,6 +16,40 @@ router.get('/state', async (req, res) => {
       jigsaw_locked: !!state?.jigsaw_locked,
       debug_code_locked: !!state?.debug_code_locked
     });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const students = await dbAll('SELECT id, name, team, status, score, last_login FROM students');
+    const attempts = await dbAll('SELECT student_id, challenge_id, score, time_taken FROM attempts');
+    
+    const result = students.map((s: any) => {
+      const studentAttempts = attempts.filter((a: any) => a.student_id === s.id);
+      
+      const wordSearch = studentAttempts.find((a: any) => a.challenge_id === 'word-search')?.score || 0;
+      const jigsawAttempt = studentAttempts.find((a: any) => a.challenge_id === 'jigsaw');
+      const jigsaw = jigsawAttempt?.score || 0;
+      const jigsawTime = jigsawAttempt?.time_taken || 0;
+      const debugCode = studentAttempts.find((a: any) => a.challenge_id === 'debug-code')?.score || 0;
+
+      return {
+        id: s.id,
+        name: s.name,
+        team: s.team,
+        status: s.status,
+        score: wordSearch + jigsaw + debugCode,
+        wordSearch,
+        jigsaw,
+        jigsawTime,
+        debugCode,
+        lastLogin: s.last_login
+      };
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }

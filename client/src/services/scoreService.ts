@@ -18,7 +18,8 @@ export interface StudentScore {
 
 export async function fetchScores(): Promise<StudentScore[]> {
   try {
-    const students = await api.getAdminStudents();
+    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/event/leaderboard`);
+    const students = await res.json();
     return students.map((s: any) => ({
       id: s.id,
       name: s.name,
