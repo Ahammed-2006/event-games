@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
+import http from 'http';
+import { initSocket } from './socket';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -30,6 +32,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

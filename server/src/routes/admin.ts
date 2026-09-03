@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import { dbAll, dbGet, dbRun } from '../database/db';
 import { authenticate, requireAdmin } from '../middleware/auth';
+import { getIo } from '../socket';
 
 const router = Router();
 
@@ -60,6 +61,7 @@ router.post('/event/reset', async (req, res) => {
   try {
     await dbRun('DELETE FROM attempts');
     await dbRun("UPDATE students SET score = 0, status = 'not-started'");
+    getIo().emit('update_scores');
     res.json({ message: 'Event reset successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to reset event' });

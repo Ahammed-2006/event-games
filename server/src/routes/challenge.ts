@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { dbGet, dbRun } from '../database/db';
 import { authenticate, requireStudent, AuthRequest } from '../middleware/auth';
-// Removed uuid import
+import { getIo } from '../socket';
 
 const router = Router();
 router.use(authenticate, requireStudent);
@@ -35,10 +35,11 @@ router.post('/word-search/submit', async (req, res) => {
     }
 
     const attemptId = Date.now().toString() + Math.floor(Math.random()*1000);
-    await dbRun('INSERT OR REPLACE INTO attempts (id, student_id, challenge_id, score, status, completed_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)', 
+    await dbRun('INSERT INTO attempts (id, student_id, challenge_id, score, status, completed_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)', 
       [attemptId, authReq.user?.id, 'word-search', score, 'completed']);
 
     await updateStudentScore(authReq.user?.id as string);
+    getIo().emit('update_scores');
     res.json({ success: true, score });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -51,10 +52,11 @@ router.post('/jigsaw/submit', async (req, res) => {
   try {
     const { score, timeTaken } = authReq.body;
     const attemptId = Date.now().toString() + Math.floor(Math.random()*1000);
-    await dbRun('INSERT OR REPLACE INTO attempts (id, student_id, challenge_id, score, status, completed_at, time_taken) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)', 
+    await dbRun('INSERT INTO attempts (id, student_id, challenge_id, score, status, completed_at, time_taken) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)', 
       [attemptId, authReq.user?.id, 'jigsaw', score, 'completed', timeTaken || 0]);
       
     await updateStudentScore(authReq.user?.id as string);
+    getIo().emit('update_scores');
     res.json({ success: true, score });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -67,10 +69,11 @@ router.post('/debug-code/submit', async (req, res) => {
   try {
     const { score } = authReq.body;
     const attemptId = Date.now().toString() + Math.floor(Math.random()*1000);
-    await dbRun('INSERT OR REPLACE INTO attempts (id, student_id, challenge_id, score, status, completed_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)', 
+    await dbRun('INSERT INTO attempts (id, student_id, challenge_id, score, status, completed_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)', 
       [attemptId, authReq.user?.id, 'debug-code', score, 'completed']);
       
     await updateStudentScore(authReq.user?.id as string);
+    getIo().emit('update_scores');
     res.json({ success: true, score });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

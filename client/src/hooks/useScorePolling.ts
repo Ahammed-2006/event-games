@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchScores, type StudentScore } from '../services/scoreService';
+import { io } from 'socket.io-client';
 
 interface UseScorePollingOptions {
   intervalMs?: number;  // polling interval (default 4 s)
@@ -45,19 +46,28 @@ export function useScorePolling({
     }
   }, []);
 
-  // Initial fetch + interval
+  // Initial fetch + socket connection
   useEffect(() => {
-    poll(); // immediate first fetch (always run once)
+    poll(); // immediate first fetch
     
-    if (enabled) {
-      timerRef.current = setInterval(poll, intervalMs);
-    }
+    if (!enabled) return;
+
+    // Connect to websocket server
+    const socket = io(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : '/');
+    
+    socket.on('connect', () => {
+      console.log('Connected to real-time score server');
+    });
+
+    socket.on('update_scores', () => {
+      poll(); // Re-fetch immediately when a score updates!
+    });
     
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (liveRef.current)  clearTimeout(liveRef.current);
+      socket.disconnect();
+      if (liveRef.current) clearTimeout(liveRef.current);
     };
-  }, [enabled, intervalMs, poll]);
+  }, [enabled, poll]);
 
   const overrideData = useCallback((data: StudentScore[]) => {
 
