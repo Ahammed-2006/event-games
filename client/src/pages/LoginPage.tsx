@@ -304,9 +304,6 @@ export default function LoginPage() {
                   {loading ? <Spinner /> : <><ShieldCheck className="w-4 h-4" /> ADMIN LOGIN</>}
                 </button>
 
-                <div className="p-3 bg-dark-bg/80 rounded-lg border border-white/5 text-xs font-mono text-gray-500">
-                  <span className="text-gray-400 font-bold">Default:</span> admin / admin123
-                </div>
               </motion.form>
             )}
 

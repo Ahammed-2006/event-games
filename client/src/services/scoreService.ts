@@ -8,7 +8,6 @@ export interface StudentScore {
   team: string;      // comma-separated member names
   score: number;
   wordSearch: number;
-  imagePuzzle: number;
   jigsaw: number;
   jigsawTime: number;
   debugCode: number;
@@ -26,7 +25,6 @@ export async function fetchScores(): Promise<StudentScore[]> {
       team: s.team,
       score: s.score,
       wordSearch: s.wordSearch,
-      imagePuzzle: s.imagePuzzle,
       jigsaw: s.jigsaw,
       jigsawTime: s.jigsawTime || 0,
       debugCode: s.debugCode,

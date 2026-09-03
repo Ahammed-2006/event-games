@@ -16,7 +16,6 @@ router.get('/students', async (req, res) => {
       const studentAttempts = attempts.filter((a: any) => a.student_id === s.id);
       
       const wordSearch = studentAttempts.find((a: any) => a.challenge_id === 'word-search')?.score || 0;
-      const imagePuzzle = studentAttempts.find((a: any) => a.challenge_id === 'image-puzzle')?.score || 0;
       const jigsawAttempt = studentAttempts.find((a: any) => a.challenge_id === 'jigsaw');
       const jigsaw = jigsawAttempt?.score || 0;
       const jigsawTime = jigsawAttempt?.time_taken || 0;
@@ -29,7 +28,6 @@ router.get('/students', async (req, res) => {
         status: s.status,
         score: s.score,
         wordSearch,
-        imagePuzzle,
         jigsaw,
         jigsawTime,
         debugCode,

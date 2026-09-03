@@ -130,7 +130,7 @@ export default function StudentPortal() {
         >
           Choose Your Challenge
         </motion.h1>
-        <p className="text-gray-500 text-sm">Complete all four to maximise your score!</p>
+        <p className="text-gray-500 text-sm">Complete all three to maximise your score!</p>
       </div>
 
       {/* Challenge cards with 3D tilt */}
